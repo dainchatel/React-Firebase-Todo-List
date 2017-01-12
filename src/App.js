@@ -9,6 +9,8 @@ class App extends Component {
 
     this.handleNewTodoInput = this.handleNewTodoInput.bind(this);
     this.deleteTodo = this.deleteTodo.bind(this);
+    this.enableEditMode = this.enableEditMode.bind(this);
+    this.updateCurrentTodo = this.updateCurrentTodo.bind(this);
   }
 
   componentDidMount() {
@@ -96,16 +98,49 @@ class App extends Component {
     );
   }
 
+    enableEditMode() {
+      this.setState({edit: true});
+    }
+
+    updateCurrentTodo(todo, newText) {
+      console.log(todo);
+      console.log(newText);
+      axios.patch('https://todo-87ea8.firebaseio.com/'+todo+'.json', {title: newText})
+        .then((res) => {
+          let todos = this.state.todos;
+        todos[todo].title = newText;
+        this.setState({ todos: todos });
+        this.setState({currentTodo: false})
+        this.setState({edit: false});
+        })
+    }
+
     renderSelectedTodo() {
     let content;
 
     if (this.state.currentTodo) {
       let currentTodo = this.state.todos[this.state.currentTodo];
-      content =  (
-        <div>
-          <h1>{currentTodo.title}</h1>
-        </div>
-      );
+      if(!this.state.edit) {
+        content =  (
+          <div>
+            <div className="d-flex justify-content-end mb-3">
+              <button onClick={this.enableEditMode}>Edit</button>
+            </div>
+            <h1>{currentTodo.title}</h1>
+          </div>
+        );
+      } else {
+        content =  (
+          <div>
+            <div className="d-flex justify-content-end mb-3">
+              <button onClick={() => {this.updateCurrentTodo(this.state.currentTodo, this.revisedTodo.value)}}>Save</button>
+            </div>
+            <input className="w-100" defaultValue={currentTodo.title} ref={(input) => {
+                  this.revisedTodo = input;
+                }} />
+          </div>
+        );
+      }
     }
 
     return content;
